@@ -1,0 +1,183 @@
+{% extends 'tracker_app/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create Account - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 mt-5">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3><i class="fas fa-user-plus"></i> Create Your Account</h3>
+                    <p class="mb-0">Start managing your finances today</p>
+                </div>
+                <div class="card-body p-5">
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.username|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.email|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.first_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.last_name|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.password1|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.password2|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms & Conditions</a> and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus"></i> Create Account
+                            </button>
+                            <a href="{% url 'login' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-sign-in-alt"></i> Already have an account? Login
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Features Card -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-3">What you get with free account:</h5>
+                    <div class="row">
+                        <div class="col-6 mb-2">
+                            <i class="fas fa-check-circle text-success"></i> Unlimited expense tracking
+                        </div>
+                        <div class="col-6 mb-2">
+                            <i class="fas fa-check-circle text-success"></i> Budget management
+                        </div>
+                        <div class="col-6 mb-2">
+                            <i class="fas fa-check-circle text-success"></i> AI investment suggestions
+                        </div>
+                        <div class="col-6 mb-2">
+                            <i class="fas fa-check-circle text-success"></i> Monthly reports
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Terms & Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>By using this service, you agree to:</p>
+                <ul>
+                    <li>Use the platform for personal financial management only</li>
+                    <li>Provide accurate financial information</li>
+                    <li>Not misuse the AI suggestions for investment decisions without proper research</li>
+                    <li>Keep your login credentials secure</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Privacy Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>We value your privacy:</p>
+                <ul>
+                    <li>Your financial data is encrypted and stored securely</li>
+                    <li>We never share your personal information with third parties</li>
+                    <li>You can export and delete your data anytime</li>
+                    <li>We use cookies only for essential functionality</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Password strength indicator
+document.addEventListener('DOMContent', function() {
+    const password1 = document.querySelector('#id_password1');
+    const password2 = document.querySelector('#id_password2');
+    
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        
+        return strength;
+    }
+    
+    if (password1) {
+        password1.addEventListener('input', function() {
+            const strength = checkPasswordStrength(this.value);
+            let message = '';
+            let color = 'text-danger';
+            
+            if (strength === 0) message = 'Very Weak';
+            else if (strength === 1) message = 'Weak';
+            else if (strength === 2) message = 'Fair';
+            else if (strength === 3) {
+                message = 'Good';
+                color = 'text-warning';
+            } else {
+                message = 'Strong';
+                color = 'text-success';
+            }
+            
+            // Update strength indicator
+            const indicator = document.getElementById('password-strength') || 
+                (() => {
+                    const div = document.createElement('div');
+                    div.id = 'password-strength';
+                    div.className = 'mt-1 small';
+                    password1.parentNode.appendChild(div);
+                    return div;
+                })();
+            
+            indicator.innerHTML = `Strength: <span class="${color}">${message}</span>`;
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,393 @@
+{% extends 'tracker_app/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Finance Manager{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Welcome Card -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="card-title mb-1">
+                                <i class="fas fa-chart-line text-primary me-2"></i>Welcome, {{ user.first_name|default:user.username }}!
+                            </h2>
+                            <p class="text-muted mb-0">Here's your financial overview for {{ current_month }}</p>
+                        </div>
+                        <div>
+                            <span class="badge bg-success fs-6">
+                                <i class="fas fa-calendar-alt"></i> {{ current_month }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Overview Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-primary border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">
+                                Monthly Salary
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">
+                                {% if salary %}
+                                    ₹{{ salary.salary_amount|floatformat:2 }}
+                                {% else %}
+                                    ₹0.00
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                <a href="{% url 'salary_management' %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i> Manage
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-money-bill-wave fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-danger border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-danger text-uppercase mb-1">
+                                Total Expenses
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">
+                                ₹{{ total_expenses|floatformat:2 }}
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge bg-{% if metrics.expense_change > 0 %}danger{% else %}success{% endif %}">
+                                    <i class="fas fa-arrow-{% if metrics.expense_change > 0 %}up{% else %}down{% endif %}"></i>
+                                    {{ metrics.expense_change|floatformat:1 }}%
+                                </span>
+                                <a href="{% url 'expense_management' %}" class="btn btn-sm btn-outline-danger ms-2">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-receipt fa-2x text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-success border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">
+                                Remaining Balance
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">
+                                ₹{{ remaining_balance|floatformat:2 }}
+                            </div>
+                            <div class="mt-2">
+                                {% if salary and salary.salary_amount > 0 %}
+                                <span class="badge bg-info">
+                                    {{ remaining_balance|divisibleby:salary.salary_amount|floatformat:1 }}% Savings
+                                </span>
+                                {% endif %}
+                                <a href="{% url 'ai_insights' %}" class="btn btn-sm btn-outline-success ms-2">
+                                    <i class="fas fa-robot"></i> Invest
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-piggy-bank fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-warning border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">
+                                Budget Status
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">
+                                {% if metrics.budget_adherence > 0 %}
+                                    {{ metrics.budget_adherence|floatformat:1 }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge bg-secondary">
+                                    ₹{{ metrics.avg_daily_spending|floatformat:2 }}/day
+                                </span>
+                                <a href="{% url 'budget_management' %}" class="btn btn-sm btn-outline-warning ms-2">
+                                    <i class="fas fa-cog"></i> Set
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-pie fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Budget Alerts Section -->
+        <div class="col-xl-6 col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Budget Alerts</h6>
+                    <span class="badge bg-dark">{{ budget_alerts|length }} Active</span>
+                </div>
+                <div class="card-body">
+                    {% if budget_alerts %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Used</th>
+                                        <th>Limit</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for alert in budget_alerts %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-tag me-2" style="color: {{ alert.category.color|default:'#6c757d' }}"></i>
+                                            {{ alert.category }}
+                                        </td>
+                                        <td>₹{{ alert.used|floatformat:2 }}</td>
+                                        <td>₹{{ alert.limit|floatformat:2 }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                                    <div class="progress-bar bg-{{ alert.alert }}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ alert.percentage|floatformat:0 }}%"
+                                                         aria-valuenow="{{ alert.percentage|floatformat:0 }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-{{ alert.alert }}">{{ alert.percentage|floatformat:1 }}%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No budgets set for this month</p>
+                            <a href="{% url 'budget_management' %}" class="btn btn-primary">
+                                <i class="fas fa-plus-circle"></i> Create Your First Budget
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Expenses -->
+        <div class="col-xl-6 col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-history me-2"></i>Recent Expenses</h6>
+                    <a href="{% url 'add_expense' %}" class="btn btn-sm btn-light">
+                        <i class="fas fa-plus"></i> Add New
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_expenses %}
+                        <div class="list-group list-group-flush">
+                            {% for expense in recent_expenses %}
+                            <div class="list-group-item border-0 px-0 py-3">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <div>
+                                        <h6 class="mb-1">{{ expense.expense_name }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>{{ expense.expense_date|date:"d M Y" }}
+                                            {% if expense.description %}
+                                            • <i class="fas fa-info-circle ms-2 me-1"></i>{{ expense.description|truncatechars:30 }}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge mb-2" style="background-color: {{ expense.expense_category.color|default:'#6c757d' }}">
+                                            {{ expense.expense_category.name }}
+                                        </span>
+                                        <h5 class="text-danger mb-0">-₹{{ expense.expense_amount|floatformat:2 }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'expense_management' %}" class="btn btn-outline-info">
+                                <i class="fas fa-list"></i> View All Expenses
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No expenses recorded yet</p>
+                            <a href="{% url 'add_expense' %}" class="btn btn-success">
+                                <i class="fas fa-plus-circle"></i> Add Your First Expense
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Monthly Summary -->
+    <div class="row">
+        <div class="col-lg-12 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'add_expense' %}" class="btn btn-danger btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                                <i class="fas fa-plus-circle fa-2x mb-2"></i>
+                                <span>Add Expense</span>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'salary_management' %}" class="btn btn-primary btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                                <i class="fas fa-edit fa-2x mb-2"></i>
+                                <span>Update Salary</span>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'ai_insights' %}" class="btn btn-success btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                                <i class="fas fa-robot fa-2x mb-2"></i>
+                                <span>AI Advice</span>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'monthly_summary' %}" class="btn btn-info btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                                <i class="fas fa-file-alt fa-2x mb-2"></i>
+                                <span>Monthly Report</span>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'analytics' %}" class="btn btn-warning btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                                <i class="fas fa-chart-line fa-2x mb-2"></i>
+                                <span>Analytics</span>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'budget_management' %}" class="btn btn-secondary btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                                <i class="fas fa-cog fa-2x mb-2"></i>
+                                <span>Budget</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Health Summary -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h6 class="mb-0"><i class="fas fa-heartbeat me-2"></i>Financial Health Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Savings Rate</h6>
+                                    {% if salary and salary.salary_amount > 0 %}
+                                        <h2 class="{% if remaining_balance|divisibleby:salary.salary_amount > 20 %}text-success{% elif remaining_balance|divisibleby:salary.salary_amount > 10 %}text-warning{% else %}text-danger{% endif %}">
+                                            {{ remaining_balance|divisibleby:salary.salary_amount|floatformat:1 }}%
+                                        </h2>
+                                        <small>Target: 20%</small>
+                                    {% else %}
+                                        <h2 class="text-muted">N/A</h2>
+                                        <small>Add salary to calculate</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Daily Average</h6>
+                                    <h2 class="text-info">₹{{ metrics.avg_daily_spending|floatformat:2 }}</h2>
+                                    <small>Spending per day</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Month Change</h6>
+                                    <h2 class="{% if metrics.expense_change > 0 %}text-danger{% else %}text-success{% endif %}">
+                                        {{ metrics.expense_change|floatformat:1 }}%
+                                    </h2>
+                                    <small>vs Last Month</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Budget Health</h6>
+                                    <h2 class="{% if metrics.budget_adherence > 80 %}text-success{% elif metrics.budget_adherence > 60 %}text-warning{% else %}text-danger{% endif %}">
+                                        {% if metrics.budget_adherence > 0 %}
+                                            {{ metrics.budget_adherence|floatformat:0 }}%
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </h2>
+                                    <small>Adherence Rate</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

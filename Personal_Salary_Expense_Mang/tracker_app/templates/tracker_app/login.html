@@ -1,0 +1,95 @@
+{% extends 'tracker_app/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 mt-5">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3><i class="fas fa-sign-in-alt"></i> Welcome Back</h3>
+                    <p class="mb-0">Login to manage your finances</p>
+                </div>
+                <div class="card-body p-5">
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            {{ form.username|as_crispy_field }}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.password|as_crispy_field }}
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">Remember me</label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </button>
+                            <a href="{% url 'register' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-user-plus"></i> Create New Account
+                            </a>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
+                                <i class="fas fa-key"></i> Forgot Password?
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Demo Account Info -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body text-center">
+                    <h6 class="card-title mb-3">Demo Account (For Testing)</h6>
+                    <div class="row">
+                        <div class="col-12 mb-2">
+                            <strong>Username:</strong> demo_user
+                        </div>
+                        <div class="col-12">
+                            <strong>Password:</strong> demo123
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            This is a demo account with sample data
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reset Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Enter your email address and we'll send you a password reset link.</p>
+                <div class="mb-3">
+                    <input type="email" class="form-control" placeholder="Your email address">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Send Reset Link</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

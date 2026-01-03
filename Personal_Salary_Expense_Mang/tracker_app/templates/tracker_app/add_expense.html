@@ -1,0 +1,191 @@
+{% extends 'tracker_app/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if edit %}Edit{% else %}Add{% endif %} Expense - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 mt-4">
+                <div class="card-header {% if edit %}bg-warning text-dark{% else %}bg-success text-white{% endif %}">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{% if edit %}edit{% else %}plus-circle{% endif %} me-2"></i>
+                        {% if edit %}Edit Expense{% else %}Add New Expense{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                {{ form.expense_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.expense_amount|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.expense_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.expense_category|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description|as_crispy_field }}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'expense_management' %}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn {% if edit %}btn-warning{% else %}btn-success{% endif %}">
+                                <i class="fas fa-save"></i> 
+                                {% if edit %}Update Expense{% else %}Add Expense{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Quick Add Categories -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <h6 class="mb-3"><i class="fas fa-bolt text-warning me-2"></i>Quick Add Common Expenses</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 quick-expense" data-name="Grocery" data-category="1" data-amount="500">
+                                <i class="fas fa-shopping-basket"></i> Grocery
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 quick-expense" data-name="Dinner" data-category="1" data-amount="300">
+                                <i class="fas fa-utensils"></i> Dinner
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 quick-expense" data-name="Fuel" data-category="2" data-amount="1000">
+                                <i class="fas fa-gas-pump"></i> Fuel
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 quick-expense" data-name="Movie" data-category="4" data-amount="500">
+                                <i class="fas fa-film"></i> Movie
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 quick-expense" data-name="Electricity Bill" data-category="5" data-amount="1500">
+                                <i class="fas fa-bolt"></i> Electricity
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 quick-expense" data-name="Medicines" data-category="6" data-amount="200">
+                                <i class="fas fa-heartbeat"></i> Medicines
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Expenses (for reference) -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <h6 class="mb-3"><i class="fas fa-history text-info me-2"></i>Recent Expenses</h6>
+                    <div class="list-group list-group-flush">
+                        {% for expense in recent_expenses|slice:":5" %}
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small>{{ expense.expense_date|date:"d M" }}</small>
+                                    <h6 class="mb-0">{{ expense.expense_name|truncatechars:30 }}</h6>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge mb-1" style="background-color: {{ expense.expense_category.color|default:'#6c757d' }}">
+                                        {{ expense.expense_category.name }}
+                                    </span>
+                                    <h6 class="mb-0 text-danger">₹{{ expense.expense_amount|floatformat:2 }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted text-center">No recent expenses</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to today
+    const dateInput = document.querySelector('#id_expense_date');
+    if (dateInput && !dateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+        dateInput.max = today; // Prevent future dates
+    }
+    
+    // Quick expense buttons
+    const quickExpenseButtons = document.querySelectorAll('.quick-expense');
+    quickExpenseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const name = this.getAttribute('data-name');
+            const category = this.getAttribute('data-category');
+            const amount = this.getAttribute('data-amount');
+            
+            document.querySelector('#id_expense_name').value = name;
+            document.querySelector('#id_expense_amount').value = amount;
+            document.querySelector('#id_expense_category').value = category;
+            
+            // Focus on amount field for easy editing
+            document.querySelector('#id_expense_amount').focus();
+        });
+    });
+    
+    // Format amount on blur
+    const amountInput = document.querySelector('#id_expense_amount');
+    if (amountInput) {
+        amountInput.addEventListener('blur', function() {
+            if (this.value) {
+                this.value = parseFloat(this.value).toFixed(2);
+            }
+        });
+    }
+    
+    // Auto-suggest category based on expense name
+    const expenseNameInput = document.querySelector('#id_expense_name');
+    if (expenseNameInput) {
+        expenseNameInput.addEventListener('blur', function() {
+            const name = this.value.toLowerCase();
+            let categoryId = '';
+            
+            // Simple keyword matching for category suggestion
+            if (name.includes('grocery') || name.includes('food') || name.includes('restaurant')) {
+                categoryId = '1'; // Food & Dining
+            } else if (name.includes('fuel') || name.includes('petrol') || name.includes('transport')) {
+                categoryId = '2'; // Transportation
+            } else if (name.includes('movie') || name.includes('entertain')) {
+                categoryId = '4'; // Entertainment
+            } else if (name.includes('bill') || name.includes('electricity') || name.includes('water')) {
+                categoryId = '5'; // Bills & Utilities
+            } else if (name.includes('medicine') || name.includes('doctor') || name.includes('health')) {
+                categoryId = '6'; // Healthcare
+            }
+            
+            if (categoryId) {
+                document.querySelector('#id_expense_category').value = categoryId;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

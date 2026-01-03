@@ -1,0 +1,378 @@
+{% extends 'tracker_app/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Expense Management - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Add Expense Form -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Expense</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'add_expense' %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="expense_name" class="form-label">Expense Name *</label>
+                            <input type="text" class="form-control" id="expense_name" name="expense_name" 
+                                   placeholder="e.g., Grocery Shopping, Movie Ticket" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="expense_amount" class="form-label">Amount *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control" id="expense_amount" 
+                                           name="expense_amount" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="expense_date" class="form-label">Date *</label>
+                                <input type="date" class="form-control" id="expense_date" 
+                                       name="expense_date" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="expense_category" class="form-label">Category *</label>
+                            <select class="form-select" id="expense_category" name="expense_category" required>
+                                <option value="">Select Category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" 
+                                        data-color="{{ category.color }}">
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="2" placeholder="Add notes about this expense..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-save"></i> Add Expense
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Expense Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h6 class="text-muted">Total Expenses This Month</h6>
+                        <h3 class="text-danger">₹
+                            {% with total=0 %}
+                                {% for expense in expenses %}
+                                    {% if expense.expense_date|date:"Y-m" == current_month|date:"Y-m" %}
+                                        {% with total=total|add:expense.expense_amount %}
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ total|floatformat:2 }}
+                            {% endwith %}
+                        </h3>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Today's Expenses</h6>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-warning" style="width: 30%"></div>
+                        </div>
+                        <small class="text-muted">₹0.00 spent today</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Weekly Average</h6>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-info" style="width: 60%"></div>
+                        </div>
+                        <small class="text-muted">₹2,500/week average</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Category Distribution</h6>
+                        <div class="row">
+                            {% for category in categories %}
+                            <div class="col-6 mb-2">
+                                <i class="fas fa-circle me-1" style="color: {{ category.color }}"></i>
+                                <small>{{ category.name }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Expense List -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Expenses</h5>
+                    <div>
+                        <div class="input-group input-group-sm" style="width: 250px;">
+                            <input type="text" class="form-control" placeholder="Search expenses...">
+                            <button class="btn btn-outline-light" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Options -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" id="filterCategory">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" id="filterMonth">
+                                <option value="">All Months</option>
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" id="filterYear">
+                                <option value="">All Years</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-sm btn-outline-primary w-100" id="exportBtn">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {% if expenses %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Category</th>
+                                        <th>Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for expense in expenses %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <strong>{{ expense.expense_date|date:"d M" }}</strong>
+                                                <small class="text-muted">{{ expense.expense_date|date:"Y" }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <strong>{{ expense.expense_name }}</strong>
+                                                {% if expense.description %}
+                                                <small class="d-block text-muted">{{ expense.description|truncatechars:50 }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge" style="background-color: {{ expense.expense_category.color|default:'#6c757d' }}">
+                                                <i class="fas fa-{{ expense.expense_category.icon|default:'tag' }} me-1"></i>
+                                                {{ expense.expense_category.name }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong class="text-danger">-₹{{ expense.expense_amount|floatformat:2 }}</strong>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'edit_expense' expense.id %}" 
+                                                   class="btn btn-outline-primary" 
+                                                   title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" 
+                                                        class="btn btn-outline-danger" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteExpenseModal{{ expense.id }}"
+                                                        title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" id="deleteExpenseModal{{ expense.id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Confirm Delete</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete this expense?</p>
+                                                    <div class="alert alert-warning">
+                                                        <strong>{{ expense.expense_name }}</strong><br>
+                                                        ₹{{ expense.expense_amount|floatformat:2 }} • 
+                                                        {{ expense.expense_category.name }}<br>
+                                                        <small>{{ expense.expense_date|date:"d M Y" }}</small>
+                                                    </div>
+                                                    <p class="text-danger">
+                                                        <i class="fas fa-exclamation-triangle"></i>
+                                                        This action cannot be undone.
+                                                    </p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form method="POST" action="{% url 'delete_expense' expense.id %}" style="display: inline;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">
+                                                            <i class="fas fa-trash"></i> Delete Expense
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot class="table-secondary">
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                        <td>
+                                            <strong class="text-danger">
+                                                -₹{% with total=0 %}
+                                                    {% for expense in expenses %}
+                                                        {% with total=total|add:expense.expense_amount %}
+                                                        {% endwith %}
+                                                    {% endfor %}
+                                                    {{ total|floatformat:2 }}
+                                                {% endwith %}
+                                            </strong>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <nav aria-label="Expense pagination">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-receipt fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No Expenses Found</h4>
+                            <p class="text-muted">Start tracking your expenses by adding your first expense.</p>
+                            <a href="#add-expense-form" class="btn btn-success">
+                                <i class="fas fa-plus-circle"></i> Add Your First Expense
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to today
+    const dateInput = document.querySelector('#expense_date');
+    if (dateInput && !dateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+        dateInput.max = today; // Prevent future dates
+    }
+    
+    // Format amount on blur
+    const amountInput = document.querySelector('#expense_amount');
+    if (amountInput) {
+        amountInput.addEventListener('blur', function() {
+            if (this.value) {
+                this.value = parseFloat(this.value).toFixed(2);
+            }
+        });
+    }
+    
+    // Filter functionality
+    const filterCategory = document.querySelector('#filterCategory');
+    const filterMonth = document.querySelector('#filterMonth');
+    const filterYear = document.querySelector('#filterYear');
+    
+    function applyFilters() {
+        const category = filterCategory.value;
+        const month = filterMonth.value;
+        const year = filterYear.value;
+        
+        // This would typically make an AJAX call
+        console.log('Applying filters:', {category, month, year});
+    }
+    
+    if (filterCategory) filterCategory.addEventListener('change', applyFilters);
+    if (filterMonth) filterMonth.addEventListener('change', applyFilters);
+    if (filterYear) filterYear.addEventListener('change', applyFilters);
+    
+    // Export functionality
+    const exportBtn = document.querySelector('#exportBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            // In a real app, this would make an API call to export data
+            alert('Export functionality would download a CSV file of your expenses.');
+        });
+    }
+    
+    // Quick add shortcut
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'n') {
+            e.preventDefault();
+            document.querySelector('#expense_name').focus();
+        }
+    });
+});
+</script>
+{% endblock %}
