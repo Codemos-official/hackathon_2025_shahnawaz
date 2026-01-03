@@ -382,108 +382,119 @@ def analytics_view(request):
 @login_required
 def ai_insights_view(request):
     current_month = timezone.now().replace(day=1)
-    
-    # Get financial data
-    salary = Salary.objects.filter(
+
+    salary_obj = Salary.objects.filter(
         user=request.user,
         month__month=current_month.month,
         month__year=current_month.year
     ).first()
-    
+
+    salary_amount = Decimal(salary_obj.salary_amount) if salary_obj else Decimal("0")
+
     expenses = Expense.objects.filter(
         user=request.user,
         expense_date__month=current_month.month,
         expense_date__year=current_month.year
     )
-    
-    total_expenses = expenses.aggregate(total=Sum('expense_amount'))['total'] or 0
-    remaining_balance = (salary.salary_amount if salary else 0) - total_expenses
-    
-    # Get expense patterns
+
+    total_expenses = expenses.aggregate(
+        total=Sum("expense_amount")
+    )["total"] or Decimal("0")
+
+    total_expenses = Decimal(total_expenses)
+    remaining_balance = salary_amount - total_expenses
+
     expense_patterns = {}
     for expense in expenses:
-        category = expense.expense_category.name if expense.expense_category else 'Other'
-        if category not in expense_patterns:
-            expense_patterns[category] = 0
-        expense_patterns[category] += float(expense.expense_amount)
-    
-    # Get AI suggestions
+        category = expense.expense_category.name if expense.expense_category else "Other"
+        expense_patterns[category] = (
+            expense_patterns.get(category, Decimal("0")) + Decimal(expense.expense_amount)
+        )
+
     ai_engine = AISuggestionEngine()
-    
-    if request.method == 'POST':
-        risk_profile = request.POST.get('risk_profile', 'Moderate')
-        
-        # Get investment suggestions
+
+    if request.method == "POST":
+        risk_profile = request.POST.get("risk_profile", "Moderate")
+
         investment_suggestions = ai_engine.get_investment_suggestions(
             remaining_balance,
             risk_profile,
             expense_patterns
         )
-        
-        # Get financial health analysis
-        savings_rate = (remaining_balance / salary.salary_amount * 100) if salary and salary.salary_amount > 0 else 0
+
+        # ✅ ONLY TWO ARGUMENTS
         financial_health = ai_engine.analyze_financial_health(
-            salary.salary_amount if salary else 0,
-            total_expenses,
-            savings_rate,
-            85  # Placeholder for budget adherence
+            salary_amount,
+            total_expenses
         )
-        
-        # Save to database
+
         InvestmentSuggestion.objects.create(
             user=request.user,
             remaining_balance=remaining_balance,
             risk_profile=risk_profile,
-            suggestions={'suggestions': investment_suggestions},
-            financial_health_score=min(100, int(savings_rate * 2 + 30))
+            suggestions={"text": investment_suggestions},
+            financial_health_score=70
         )
-        
-        context = {
-            'suggestions': investment_suggestions,
-            'financial_health': financial_health,
-            'remaining_balance': remaining_balance,
-            'risk_profile': risk_profile,
-            'generated': True
-        }
-        
-        return render(request, 'tracker_app/ai_insights.html', context)
-    
-    # Get previous suggestions
+
+        return render(
+            request,
+            "tracker_app/ai_insights.html",
+            {
+                "suggestions": investment_suggestions,
+                "financial_health": financial_health,
+                "remaining_balance": remaining_balance,
+                "risk_profile": risk_profile,
+                "generated": True,
+            },
+        )
+
     previous_suggestions = InvestmentSuggestion.objects.filter(
         user=request.user
-    ).order_by('-generated_at')[:3]
-    
-    context = {
-        'remaining_balance': remaining_balance,
-        'previous_suggestions': previous_suggestions,
-        'generated': False
-    }
-    
-    return render(request, 'tracker_app/ai_insights.html', context)
+    ).order_by("-generated_at")[:3]
+
+    return render(
+        request,
+        "tracker_app/ai_insights.html",
+        {
+            "remaining_balance": remaining_balance,
+            "previous_suggestions": previous_suggestions,
+            "generated": False,
+        },
+    )
 
 # Monthly Summary
 @login_required
 def monthly_summary_view(request):
     current_month = timezone.now().replace(day=1)
-    
-    # Get or generate report
+
+    # ===============================
+    # FETCH OR GENERATE MONTHLY REPORT
+    # ===============================
     report = MonthlyReport.objects.filter(
         user=request.user,
         month__month=current_month.month,
         month__year=current_month.year
     ).first()
-    
-    if not report:
-        # Generate new report
-        report = generate_monthly_report(request.user, current_month)
-    
-    context = {
-        'report': report,
-        'current_month': current_month.strftime('%B %Y'),
-    }
-    
-    return render(request, 'tracker_app/monthly_summary.html', context)
 
+    if not report:
+        report = generate_monthly_report(request.user, current_month)
+
+   
+    savings_rate = Decimal(report.savings_rate or 0)
+
+   
+    score = (savings_rate * Decimal("5")) + Decimal("50")
+
+    health_score = min(100, max(0, int(score)))
+
+    report.health_score = health_score
+
+    context = {
+        "report": report,
+        "current_month": current_month.strftime("%B %Y"),
+    }
+
+    return render(request, "tracker_app/monthly_summary.html", context)
 def generate_monthly_report(user, month):
     """Generate monthly report with AI insights"""
     

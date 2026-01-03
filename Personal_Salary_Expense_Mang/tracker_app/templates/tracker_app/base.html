@@ -5,111 +5,659 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Finance Manager{% endblock %}</title>
     
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     <!-- Custom CSS -->
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="dashboard-body">
     {% if user.is_authenticated %}
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">
-                <i class="fas fa-wallet"></i> Finance Manager
+    <!-- Premium Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-premium">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand brand-modern" href="{% url 'dashboard' %}" data-aos="fade-right">
+                <div class="brand-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <span class="brand-text">FinanceHub</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">
-                            <i class="fas fa-home"></i> Dashboard
+            
+            <!-- Desktop Navigation -->
+            <div class="d-none d-lg-flex align-items-center ms-auto">
+                <div class="nav-modern-container">
+                    <a class="nav-modern-item" href="{% url 'dashboard' %}">
+                        <i class="fas fa-home"></i>
+                        <span class="nav-label">Dashboard</span>
+                    </a>
+                    <a class="nav-modern-item" href="{% url 'salary_management' %}">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span class="nav-label">Salary</span>
+                    </a>
+                    <a class="nav-modern-item" href="{% url 'expense_management' %}">
+                        <i class="fas fa-receipt"></i>
+                        <span class="nav-label">Expenses</span>
+                    </a>
+                    <a class="nav-modern-item" href="{% url 'budget_management' %}">
+                        <i class="fas fa-chart-pie"></i>
+                        <span class="nav-label">Budget</span>
+                    </a>
+                    <a class="nav-modern-item" href="{% url 'analytics' %}">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="nav-label">Analytics</span>
+                    </a>
+                    
+                    <!-- AI Tools Dropdown -->
+                    <div class="nav-modern-dropdown">
+                        <a class="nav-modern-item dropdown-toggle" href="#">
+                            <i class="fas fa-robot"></i>
+                            <span class="nav-label">AI Tools</span>
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'salary_management' %}">
-                            <i class="fas fa-money-bill-wave"></i> Salary
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'expense_management' %}">
-                            <i class="fas fa-receipt"></i> Expenses
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'budget_management' %}">
-                            <i class="fas fa-chart-pie"></i> Budget
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'analytics' %}">
-                            <i class="fas fa-chart-line"></i> Analytics
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-robot"></i> AI Tools
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'ai_insights' %}">Investment Suggestions</a></li>
-                            <li><a class="dropdown-item" href="{% url 'monthly_summary' %}">Monthly Report</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <span class="nav-link text-light">
-                            <i class="fas fa-user"></i> {{ user.username }}
-                        </span>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </a>
-                    </li>
-                </ul>
+                        <div class="dropdown-modern-menu">
+                            <a class="dropdown-modern-item" href="{% url 'ai_insights' %}">
+                                <i class="fas fa-lightbulb"></i>
+                                <span>Investment Suggestions</span>
+                            </a>
+                            <a class="dropdown-modern-item" href="{% url 'monthly_summary' %}">
+                                <i class="fas fa-file-alt"></i>
+                                <span>Monthly Report</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User Profile & Logout -->
+                <div class="d-flex align-items-center ms-4">
+                    <div class="user-profile-modern">
+                        <div class="user-avatar-modern">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name">{{ user.username }}</span>
+                            <span class="user-status">Active</span>
+                        </div>
+                    </div>
+                    <a href="{% url 'logout' %}" class="logout-btn-modern ms-3">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
             </div>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav">
+                <span class="navbar-toggler-icon">
+                    <i class="fas fa-bars"></i>
+                </span>
+            </button>
         </div>
+        
     </nav>
     {% endif %}
 
     <!-- Messages -->
-    <div class="container mt-3">
+    <div class="container-fluid px-4 mt-3">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert-modern alert-{{ message.tags }}" data-aos="fade-down">
+                    <div class="alert-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="alert-content">
+                        {{ message }}
+                    </div>
+                    <button type="button" class="alert-close">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             {% endfor %}
         {% endif %}
     </div>
 
     <!-- Main Content -->
-    <main>
-        {% block content %}{% endblock %}
+    <main class="main-content">
+        <div class="container-fluid px-4 py-4">
+            {% block content %}
+            <!-- Welcome Section -->
+            <div class="welcome-card-modern mb-5" data-aos="fade-up">
+                <div class="welcome-background"></div>
+                <div class="welcome-content">
+                    <div>
+                        <h1 class="welcome-title">Welcome back, <span class="gradient-text">{{ user.username }}</span>! 👋</h1>
+                        <p class="welcome-subtitle">Here's your financial overview for today</p>
+                        <div class="welcome-stats">
+                            <div class="stat-chip">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span id="currentDate"></span>
+                            </div>
+                            <div class="stat-chip">
+                                <i class="fas fa-wallet"></i>
+                                <span>Balance: ₹{{ remaining_balance|default:"0" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="welcome-actions">
+                        <a href="{% url 'salary_management' %}" class="btn-modern btn-gradient">
+                            <i class="fas fa-plus"></i> Add Income
+                        </a>
+                        <a href="{% url 'expense_management' %}" class="btn-modern btn-outline">
+                            <i class="fas fa-minus"></i> Add Expense
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards Row -->
+            <div class="row g-4 mb-5">
+                <!-- Total Salary Card -->
+                <div class="col-12 col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="100">
+                    <div class="stat-card-modern stat-card-primary">
+                        <div class="stat-card-background"></div>
+                        <div class="stat-card-content">
+                            <div class="stat-header">
+                                <div class="stat-icon-circle">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div class="stat-trend">
+                                    <span class="trend-up"><i class="fas fa-arrow-up"></i> 12%</span>
+                                </div>
+                            </div>
+                            <h3 class="stat-value">₹{{ total_salary|default:"0" }}</h3>
+                            <p class="stat-label">Total Salary</p>
+                            <div class="stat-progress">
+                                <div class="progress-bar" style="width: 85%"></div>
+                            </div>
+                            <div class="stat-footer">
+                                <span><i class="fas fa-calendar"></i> This month</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Expenses Card -->
+                <div class="col-12 col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="200">
+                    <div class="stat-card-modern stat-card-danger">
+                        <div class="stat-card-background"></div>
+                        <div class="stat-card-content">
+                            <div class="stat-header">
+                                <div class="stat-icon-circle">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <div class="stat-trend">
+                                    <span class="trend-down"><i class="fas fa-arrow-down"></i> 8%</span>
+                                </div>
+                            </div>
+                            <h3 class="stat-value">₹{{ total_expenses|default:"0" }}</h3>
+                            <p class="stat-label">Total Expenses</p>
+                            <div class="stat-progress">
+                                <div class="progress-bar" style="width: 65%"></div>
+                            </div>
+                            <div class="stat-footer">
+                                <span><i class="fas fa-chart-line"></i> Monthly spend</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Remaining Balance Card -->
+                <div class="col-12 col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="300">
+                    <div class="stat-card-modern stat-card-success">
+                        <div class="stat-card-background"></div>
+                        <div class="stat-card-content">
+                            <div class="stat-header">
+                                <div class="stat-icon-circle">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                                <div class="stat-trend">
+                                    <span class="trend-up"><i class="fas fa-arrow-up"></i> 15%</span>
+                                </div>
+                            </div>
+                            <h3 class="stat-value">₹{{ remaining_balance|default:"0" }}</h3>
+                            <p class="stat-label">Remaining Balance</p>
+                            <div class="stat-progress">
+                                <div class="progress-bar" style="width: 75%"></div>
+                            </div>
+                            <div class="stat-footer">
+                                <span><i class="fas fa-check-circle"></i> Available now</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Savings Goal Card -->
+                <div class="col-12 col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="400">
+                    <div class="stat-card-modern stat-card-warning">
+                        <div class="stat-card-background"></div>
+                        <div class="stat-card-content">
+                            <div class="stat-header">
+                                <div class="stat-icon-circle">
+                                    <i class="fas fa-piggy-bank"></i>
+                                </div>
+                                <div class="stat-trend">
+                                    <span class="trend-up"><i class="fas fa-arrow-up"></i> 22%</span>
+                                </div>
+                            </div>
+                            <h3 class="stat-value">₹{{ savings_goal|default:"0" }}</h3>
+                            <p class="stat-label">Savings Goal</p>
+                            <div class="stat-progress">
+                                <div class="progress-bar" style="width: 75%"></div>
+                            </div>
+                            <div class="stat-footer">
+                                <span><i class="fas fa-target"></i> 75% achieved</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Quick Actions Row -->
+            <div class="row g-4 mb-5">
+                <!-- Financial Overview Chart -->
+                <div class="col-12 col-lg-8">
+                    <div class="dashboard-card-modern" data-aos="fade-up" data-aos-delay="100">
+                        <div class="card-header-modern">
+                            <div>
+                                <h5 class="card-title-modern">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    Financial Overview
+                                </h5>
+                                <p class="card-subtitle">Income vs Expenses (Last 6 Months)</p>
+                            </div>
+                            <div class="time-filter">
+                                <button class="filter-btn active">Week</button>
+                                <button class="filter-btn">Month</button>
+                                <button class="filter-btn">Year</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="financialChart" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="col-12 col-lg-4">
+                    <div class="dashboard-card-modern" data-aos="fade-up" data-aos-delay="200">
+                        <div class="card-header-modern">
+                            <div>
+                                <h5 class="card-title-modern">
+                                    <i class="fas fa-bolt me-2"></i>
+                                    Quick Actions
+                                </h5>
+                                <p class="card-subtitle">Manage your finances instantly</p>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="quick-actions-modern">
+                                <a href="{% url 'salary_management' %}" class="quick-action-btn action-income">
+                                    <div class="action-icon">
+                                        <i class="fas fa-plus-circle"></i>
+                                    </div>
+                                    <div class="action-content">
+                                        <h6>Add Salary</h6>
+                                        <p>Record new income</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right action-arrow"></i>
+                                </a>
+                                
+                                <a href="{% url 'expense_management' %}" class="quick-action-btn action-expense">
+                                    <div class="action-icon">
+                                        <i class="fas fa-minus-circle"></i>
+                                    </div>
+                                    <div class="action-content">
+                                        <h6>Add Expense</h6>
+                                        <p>Track spending</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right action-arrow"></i>
+                                </a>
+                                
+                                <a href="{% url 'budget_management' %}" class="quick-action-btn action-budget">
+                                    <div class="action-icon">
+                                        <i class="fas fa-chart-pie"></i>
+                                    </div>
+                                    <div class="action-content">
+                                        <h6>Set Budget</h6>
+                                        <p>Plan monthly budget</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right action-arrow"></i>
+                                </a>
+                                
+                                <a href="{% url 'analytics' %}" class="quick-action-btn action-analytics">
+                                    <div class="action-icon">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </div>
+                                    <div class="action-content">
+                                        <h6>View Reports</h6>
+                                        <p>Detailed analytics</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right action-arrow"></i>
+                                </a>
+                                
+                                <a href="{% url 'ai_insights' %}" class="quick-action-btn action-ai">
+                                    <div class="action-icon">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                    <div class="action-content">
+                                        <h6>AI Insights</h6>
+                                        <p>Smart suggestions</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right action-arrow"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="dashboard-card-modern" data-aos="fade-up">
+                        <div class="card-header-modern">
+                            <div>
+                                <h5 class="card-title-modern">
+                                    <i class="fas fa-history me-2"></i>
+                                    Recent Transactions
+                                </h5>
+                                <p class="card-subtitle">Latest income and expenses</p>
+                            </div>
+                            <a href="{% url 'expense_management' %}" class="btn-modern btn-outline">
+                                <i class="fas fa-eye me-2"></i>View All
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table-modern">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th>Category</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="transaction-date">
+                                                    <span class="date-day">03</span>
+                                                    <span class="date-month">Jan</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="transaction-info">
+                                                    <div class="transaction-icon income">
+                                                        <i class="fas fa-money-bill-wave"></i>
+                                                    </div>
+                                                    <div>
+                                                        <strong>Monthly Salary</strong>
+                                                        <p class="transaction-desc">Company payroll</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><span class="category-badge category-income">Income</span></td>
+                                            <td><span class="amount-income">+₹50,000</span></td>
+                                            <td><span class="status-badge status-completed">Completed</span></td>
+                                            <td>
+                                                <button class="table-action-btn">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="transaction-date">
+                                                    <span class="date-day">02</span>
+                                                    <span class="date-month">Jan</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="transaction-info">
+                                                    <div class="transaction-icon expense">
+                                                        <i class="fas fa-shopping-cart"></i>
+                                                    </div>
+                                                    <div>
+                                                        <strong>Grocery Shopping</strong>
+                                                        <p class="transaction-desc">Supermarket</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><span class="category-badge category-food">Food</span></td>
+                                            <td><span class="amount-expense">-₹3,500</span></td>
+                                            <td><span class="status-badge status-completed">Completed</span></td>
+                                            <td>
+                                                <button class="table-action-btn">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="transaction-date">
+                                                    <span class="date-day">01</span>
+                                                    <span class="date-month">Jan</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="transaction-info">
+                                                    <div class="transaction-icon expense">
+                                                        <i class="fas fa-bolt"></i>
+                                                    </div>
+                                                    <div>
+                                                        <strong>Electricity Bill</strong>
+                                                        <p class="transaction-desc">Monthly utility</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><span class="category-badge category-utilities">Utilities</span></td>
+                                            <td><span class="amount-expense">-₹1,200</span></td>
+                                            <td><span class="status-badge status-pending">Pending</span></td>
+                                            <td>
+                                                <button class="table-action-btn">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endblock %}
+        </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-light mt-5 py-4">
-        <div class="container text-center">
-            <p>&copy; 2024 Personal Finance Manager. All rights reserved.</p>
-            <p class="mb-0">Track • Analyze • Invest • Grow</p>
+    <!-- Modern Footer -->
+    <footer class="footer-modern">
+        <div class="container-fluid px-4">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="brand-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div>
+                        <h6>FinanceHub</h6>
+                        <p>Smart finance management</p>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Support</a>
+                </div>
+                <div class="footer-tagline">
+                    <p>Track • Analyze • Invest • Grow</p>
+                </div>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2024 FinanceHub. All rights reserved.</p>
+            </div>
         </div>
     </footer>
 
     <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     
     <!-- Custom JS -->
+    <script>
+        // Initialize AOS animations
+        AOS.init({
+            duration: 800,
+            easing: 'ease-out',
+            once: true
+        });
+
+        // Display current date
+        const dateElement = document.getElementById('currentDate');
+        if (dateElement) {
+            const today = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateElement.textContent = today.toLocaleDateString('en-US', options);
+        }
+
+        // Sample Chart with modern design
+        const ctx = document.getElementById('financialChart');
+        if (ctx) {
+            const gradient1 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+            gradient1.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
+            gradient1.addColorStop(1, 'rgba(99, 102, 241, 0.05)');
+            
+            const gradient2 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+            gradient2.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
+            gradient2.addColorStop(1, 'rgba(239, 68, 68, 0.05)');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Income',
+                        data: [50000, 52000, 48000, 54000, 51000, 55000],
+                        borderColor: '#6366f1',
+                        backgroundColor: gradient1,
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }, {
+                        label: 'Expenses',
+                        data: [35000, 38000, 32000, 40000, 37000, 39000],
+                        borderColor: '#ef4444',
+                        backgroundColor: gradient2,
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#ef4444',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    family: 'Inter',
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                family: 'Inter',
+                                size: 12
+                            },
+                            bodyFont: {
+                                family: 'Inter',
+                                size: 12
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value.toLocaleString();
+                                },
+                                font: {
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Inter'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Add active state to filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Close alert on click
+        document.querySelectorAll('.alert-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('.alert-modern').style.opacity = '0';
+                setTimeout(() => {
+                    this.closest('.alert-modern').remove();
+                }, 300);
+            });
+        });
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

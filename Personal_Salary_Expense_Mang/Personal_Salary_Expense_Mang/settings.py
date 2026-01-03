@@ -143,6 +143,6 @@ LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'landing'
 
 # AI API Configuration
-AI_PROVIDER = 'openai'
-OPENAI_API_KEY = 'your-openai-api-key'
+AI_PROVIDER = "openrouter" 
+OPENAI_API_KEY = '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'
 GEMINI_API_KEY = 'AIzaSyAyqyAr3gn_i-yaWWArE_dp19Gr7dr8yBw'
